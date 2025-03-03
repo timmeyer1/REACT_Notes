@@ -1,9 +1,22 @@
 // src/utils/storage.js
+const STORAGE_KEY = 'pages';
+
 export const loadPages = () => {
-    const savedPages = localStorage.getItem('pages');
+  try {
+    const savedPages = localStorage.getItem(STORAGE_KEY);
     return savedPages ? JSON.parse(savedPages) : null;
-  };
-  
-  export const savePages = (pages) => {
-    localStorage.setItem('pages', JSON.stringify(pages));
-  };
+  } catch (error) {
+    console.error('Erreur lors du chargement des pages:', error);
+    return null;
+  }
+};
+
+export const savePages = (pages) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(pages));
+    return true;
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde des pages:', error);
+    return false;
+  }
+};

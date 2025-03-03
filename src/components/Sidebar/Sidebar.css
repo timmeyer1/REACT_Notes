@@ -6,9 +6,9 @@
     border-right: 1px solid #ddd;
     height: 100vh;
     overflow-y: auto;
-  }
-  
-  .sidebar-button {
+}
+
+.sidebar-button {
     width: 100%;
     padding: 10px;
     margin-bottom: 10px;
@@ -16,18 +16,18 @@
     color: white;
     border: none;
     cursor: pointer;
-  }
-  
-  .sidebar-button:hover {
+}
+
+.sidebar-button:hover {
     background-color: #005bb5;
-  }
-  
-  .sidebar ul {
+}
+
+.sidebar ul {
     list-style-type: none;
     padding: 0;
-  }
-  
-  .sidebar li {
+}
+
+.sidebar li {
     padding: 10px;
     margin-bottom: 5px;
     background-color: white;
@@ -36,52 +36,52 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
-  
-  .sidebar li:hover {
+}
+
+.sidebar li:hover {
     background-color: #f9f9f9;
-  }
-  
-  .sidebar .selected {
+}
+
+.sidebar .selected {
     background-color: #007bff;
     color: white;
     border-color: #005bb5;
-  }
-  
-  .delete-button {
+}
+
+.delete-button {
     background-color: #ff4d4d;
     color: white;
     border: none;
     padding: 5px 10px;
     cursor: pointer;
-  }
-  
-  .delete-button:hover {
-    background-color: #ff1a1a;
-  }
+}
 
-  /* src/components/Sidebar/Sidebar.css */
+.delete-button:hover {
+    background-color: #ff1a1a;
+}
+
+/* src/components/Sidebar/Sidebar.css */
 .drag-handle {
     cursor: grab;
     background: none;
     border: none;
     padding: 0;
     margin-right: 10px;
-  }
-  
-  .drag-handle:active {
+}
+
+.drag-handle:active {
     cursor: grabbing;
-  }
-  
-  .delete-button {
+}
+
+.delete-button {
     margin-left: auto;
     background-color: #ff4d4d;
     color: white;
     border: none;
     padding: 5px 10px;
     cursor: pointer;
-  }
-  
-  .delete-button:hover {
+}
+
+.delete-button:hover {
     background-color: #ff1a1a;
-  }
+}
