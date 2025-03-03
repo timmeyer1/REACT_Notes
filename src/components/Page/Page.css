@@ -1,0 +1,24 @@
+/* src/components/Page/Page.css */
+.page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .page-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    padding: 10px;
+    border: none;
+    outline: none;
+  }
+  
+  .page-content {
+    flex: 1;
+    font-size: 16px;
+    padding: 10px;
+    border: none;
+    outline: none;
+    resize: none;
+  }

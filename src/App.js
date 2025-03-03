@@ -1,25 +1,56 @@
-import logo from './logo.svg';
+// src/App.js
+import React, { useState, useEffect } from 'react';
+import Sidebar from './components/Sidebar/Sidebar';
+import Editor from './components/Editor/Editor';
+import { loadPages, savePages } from './utils/storage';
 import './App.css';
 
-function App() {
+const App = () => {
+  // Charger les pages depuis le localStorage au démarrage
+  const [pages, setPages] = useState(loadPages() || [{ id: 1, title: '', content: '' }]);
+  const [selectedPage, setSelectedPage] = useState(pages[0].id);
+
+  // Sauvegarder les pages dans le localStorage à chaque changement
+  useEffect(() => {
+    savePages(pages);
+  }, [pages]);
+
+  // Ajouter une nouvelle page
+  const handleAddPage = () => {
+    const newPage = { id: pages.length + 1, title: '', content: '' };
+    setPages([...pages, newPage]);
+    setSelectedPage(newPage.id);
+  };
+
+  // Sélectionner une page
+  const handleSelectPage = (id) => {
+    setSelectedPage(id);
+  };
+
+  // Mettre à jour une page
+  const handleUpdatePage = (id, updates) => {
+    setPages((prevPages) =>
+      prevPages.map((page) =>
+        page.id === id ? { ...page, ...updates } : page
+      )
+    );
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      <Sidebar
+        pages={pages}
+        selectedPage={selectedPage}
+        onAddPage={handleAddPage}
+        onSelectPage={handleSelectPage}
+      />
+      <Editor
+        selectedPage={selectedPage}
+        pages={pages}
+        onUpdatePage={handleUpdatePage}
+      />
     </div>
   );
-}
+};
 
 export default App;
