@@ -1,24 +1,27 @@
 // src/components/Sidebar/Sidebar.js
 import React from 'react';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableItem } from './SortableItem';
 import './Sidebar.css';
 
-const Sidebar = ({ pages, selectedPage, onAddPage, onSelectPage }) => {
+const Sidebar = ({ pages, selectedPage, onAddPage, onSelectPage, onDeletePage }) => {
   return (
     <div className="sidebar">
       <button onClick={onAddPage} className="sidebar-button">
         Nouvelle Page
       </button>
-      <ul>
+      <SortableContext items={pages} strategy={verticalListSortingStrategy}>
         {pages.map((page) => (
-          <li
+          <SortableItem
             key={page.id}
-            onClick={() => onSelectPage(page.id)}
-            className={selectedPage === page.id ? 'selected' : ''}
-          >
-            {page.title || `Page ${page.id}`}
-          </li>
+            id={page.id}
+            page={page}
+            selectedPage={selectedPage}
+            onSelectPage={onSelectPage}
+            onDeletePage={onDeletePage}
+          />
         ))}
-      </ul>
+      </SortableContext>
     </div>
   );
 };

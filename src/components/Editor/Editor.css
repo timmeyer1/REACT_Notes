@@ -2,4 +2,21 @@
 .editor {
     flex: 1;
     padding: 20px;
-  }
+}
+
+.export-buttons {
+    margin-bottom: 20px;
+}
+
+.export-buttons button {
+    margin-right: 10px;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.export-buttons button:hover {
+    background-color: #45a049;
+}
