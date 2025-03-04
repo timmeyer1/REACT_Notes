@@ -15,25 +15,29 @@ export const SortableItem = ({ id, page, isActive, onSelectPage, onDeletePage })
     <li
       ref={setNodeRef}
       style={style}
-      className={`page-item ${isActive ? 'active' : ''}`}
+      className={`p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 ${
+        isActive ? 'bg-blue-50' : ''
+      }`}
       onClick={onSelectPage}
     >
-      <div className="page-item-content">
-        {/* Bouton pour glisser */}
-        <button {...attributes} {...listeners} className="drag-handle" type="button">
+      <div className="flex items-center justify-between">
+        <button 
+          {...attributes} 
+          {...listeners} 
+          className="text-gray-400 hover:text-gray-700 p-1 mr-2 cursor-grab"
+          type="button"
+        >
           ≡
         </button>
 
-        {/* Titre de la page */}
-        <span className="page-title">{page.title || `Page ${page.id}`}</span>
+        <span className="flex-1 truncate">{page.title || `Page ${page.id}`}</span>
 
-        {/* Bouton de suppression */}
         <button
           onClick={(e) => {
-            e.stopPropagation(); // Empêcher la sélection de la page
+            e.stopPropagation();
             onDeletePage(page.id);
           }}
-          className="delete-button"
+          className="text-gray-400 hover:text-red-500 p-1 ml-2"
           type="button"
         >
           ×

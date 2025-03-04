@@ -1,7 +1,6 @@
 // src/components/Editor/Editor.js
 import React, { useState } from 'react';
 import Page from '../Page/Page';
-import './Editor.css';
 
 const Editor = ({ pages, pageId, onUpdatePage, onTitleChange }) => {
   const [isExporting, setIsExporting] = useState(false);
@@ -26,18 +25,11 @@ const Editor = ({ pages, pageId, onUpdatePage, onTitleChange }) => {
         const { jsPDF } = await import('jspdf');
         const doc = new jsPDF();
         
-        // Configurer la police et la taille
         doc.setFont('helvetica');
-        doc.setFontSize(12);
-        
-        // Ajouter le titre en gras
         doc.setFontSize(16);
         doc.text(page.title, 20, 20);
         
-        // Ajouter le contenu
         doc.setFontSize(12);
-        
-        // Gérer le saut de ligne et la pagination
         const splitText = doc.splitTextToSize(page.content, 170);
         doc.text(splitText, 20, 30);
         
@@ -56,23 +48,23 @@ const Editor = ({ pages, pageId, onUpdatePage, onTitleChange }) => {
   };
 
   if (!page) {
-    return <div className="editor">Page non trouvée</div>;
+    return <div className="flex-1 flex items-center justify-center text-gray-500">Page non trouvée</div>;
   }
 
   return (
-    <div className="editor">
-      <div className="editor-toolbar">
+    <div className="flex-1 flex flex-col h-full">
+      <div className="bg-white p-3 border-b border-gray-200 shadow-sm flex space-x-2">
         <button 
           onClick={() => handleExport('doc')} 
           disabled={isExporting}
-          className="export-button"
+          className="py-1 px-3 bg-gray-100 hover:bg-gray-200 rounded text-sm font-medium disabled:opacity-50"
         >
           {isExporting ? 'Exportation...' : 'Exporter en DOC'}
         </button>
         <button 
           onClick={() => handleExport('pdf')} 
           disabled={isExporting}
-          className="export-button"
+          className="py-1 px-3 bg-gray-100 hover:bg-gray-200 rounded text-sm font-medium disabled:opacity-50"
         >
           {isExporting ? 'Exportation...' : 'Exporter en PDF'}
         </button>
