@@ -14,8 +14,10 @@ const Page = ({ title, content, onTitleChange, onContentChange }) => {
   const [showCommands, setShowCommands] = useState(false);
   const [filteredCommands, setFilteredCommands] = useState(COMMANDS);
   const [commandsPosition, setCommandsPosition] = useState({ top: 0, left: 0 });
+  const [selectedCommandIndex, setSelectedCommandIndex] = useState(0);
   const textareaRef = useRef(null);
-  const [cursorPosition, setCursorPosition] = useState(null);
+  const commandsRef = useRef(null);
+  const [lastSlashIndex, setLastSlashIndex] = useState(-1);
 
   const handleTitleKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -67,78 +69,160 @@ const Page = ({ title, content, onTitleChange, onContentChange }) => {
     
     const selectionStart = e.target.selectionStart;
     const textBeforeSelection = value.substring(0, selectionStart);
-    const words = textBeforeSelection.split(/\s+/);
-    const lastWord = words[words.length - 1];
-
-    if (lastWord.startsWith('/')) {
-      setShowCommands(true);
-      setFilteredCommands(COMMANDS.filter(cmd => 
-        cmd.label.toLowerCase().includes(lastWord.substring(1).toLowerCase())
-      ));
+    
+    // Vérifier si un '/' est présent dans le texte avant le curseur
+    const lastSlashPos = textBeforeSelection.lastIndexOf('/');
+    
+    if (lastSlashPos !== -1) {
+      // Vérifier s'il y a un espace ou un saut de ligne avant le slash, ou si c'est au début du texte
+      const charBeforeSlash = lastSlashPos > 0 ? textBeforeSelection.charAt(lastSlashPos - 1) : null;
       
-      // Recalculer la position du curseur
-      setTimeout(() => {
-        const caretPos = getCaretCoordinates();
-        const textareaRect = textareaRef.current.getBoundingClientRect();
+      if (lastSlashPos === 0 || charBeforeSlash === ' ' || charBeforeSlash === '\n') {
+        // Vérifier s'il y a un espace après le slash
+        const textAfterSlash = textBeforeSelection.substring(lastSlashPos + 1);
+        const nextSpace = textAfterSlash.indexOf(' ');
+        const searchText = nextSpace === -1 ? textAfterSlash : textAfterSlash.substring(0, nextSpace);
         
-        setCommandsPosition({
-          top: textareaRect.top + caretPos.top + 20, // 20px en dessous du curseur
-          left: textareaRect.left + caretPos.left
-        });
-      }, 0);
-    } else {
-      setShowCommands(false);
+        setLastSlashIndex(lastSlashPos);
+        setShowCommands(true);
+        setSelectedCommandIndex(0);
+        setFilteredCommands(
+          COMMANDS.filter(cmd => cmd.label.toLowerCase().includes(searchText.toLowerCase()))
+        );
+        
+        // Recalculer la position du curseur
+        setTimeout(() => {
+          const caretPos = getCaretCoordinates();
+          const textareaRect = textareaRef.current.getBoundingClientRect();
+          
+          setCommandsPosition({
+            top: textareaRect.top + caretPos.top + 20, // 20px en dessous du curseur
+            left: textareaRect.left + caretPos.left
+          });
+        }, 0);
+        
+        return;
+      }
     }
+    
+    setShowCommands(false);
   };
 
-  const handleCommandSelect = (command) => {
-    let newContent = content;
+  const insertCommandContent = (command) => {
+    if (!textareaRef.current) return;
     
-    // Trouver la position du dernier '/'
     const selectionStart = textareaRef.current.selectionStart;
     const textBeforeSelection = content.substring(0, selectionStart);
-    const lastSlashIndex = textBeforeSelection.lastIndexOf('/');
     
-    // Remplacer la commande par le contenu approprié
-    const beforeCommand = content.substring(0, lastSlashIndex);
+    // Identifier le texte de la commande à remplacer
+    const lastSlashPos = lastSlashIndex;
+    if (lastSlashPos === -1) return;
+    
+    const beforeCommand = content.substring(0, lastSlashPos);
     const afterCommand = content.substring(selectionStart);
     
-    if (command.type === 'table') {
-      newContent = beforeCommand + '\n| Colonne 1 | Colonne 2 |\n|-----------|-----------|\n| Valeur 1  | Valeur 2  |' + afterCommand;
-    } else if (command.type === 'callout') {
-      newContent = beforeCommand + '\n🔹 Note: Saisissez votre texte ici...' + afterCommand;
-    } else if (command.type === 'code') {
-      newContent = beforeCommand + '\n```\nÉcrivez votre code ici\n```' + afterCommand;
-    } else if (command.type === 'h1') {
-      newContent = beforeCommand + '\n# Titre H1' + afterCommand;
-    } else if (command.type === 'h2') {
-      newContent = beforeCommand + '\n## Titre H2' + afterCommand;
-    } else if (command.type === 'h3') {
-      newContent = beforeCommand + '\n### Titre H3' + afterCommand;
-    } else if (command.type === 'hr') {
-      newContent = beforeCommand + '\n---' + afterCommand;
+    let insertText = '';
+    
+    switch (command.type) {
+      case 'table':
+        insertText = '\n| Colonne 1 | Colonne 2 |\n|-----------|-----------|\n| Valeur 1  | Valeur 2  |';
+        break;
+      case 'callout':
+        insertText = '\n🔹 Note: Saisissez votre texte ici...';
+        break;
+      case 'code':
+        insertText = '\n```\nÉcrivez votre code ici\n```';
+        break;
+      case 'h1':
+        insertText = '\n# Titre H1';
+        break;
+      case 'h2':
+        insertText = '\n## Titre H2';
+        break;
+      case 'h3':
+        insertText = '\n### Titre H3';
+        break;
+      case 'hr':
+        insertText = '\n---';
+        break;
+      default:
+        insertText = '';
     }
     
+    const newContent = beforeCommand + insertText + afterCommand;
     onContentChange(newContent);
-    setShowCommands(false);
     
-    // Remettre le focus sur le textarea après l'insertion
+    // Calcul de la nouvelle position du curseur après insertion
+    const newCursorPosition = lastSlashPos + insertText.length;
+    
+    // Mettre à jour la position du curseur après le rendu
     setTimeout(() => {
-      textareaRef.current.focus();
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(newCursorPosition, newCursorPosition);
+      }
     }, 0);
   };
 
-  // Suivre les changements de position du curseur
-  const handleSelectionChange = () => {
-    if (textareaRef.current) {
-      setCursorPosition(textareaRef.current.selectionStart);
+  const handleCommandSelect = (command) => {
+    insertCommandContent(command);
+    setShowCommands(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (!showCommands) return;
+    
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedCommandIndex((prevIndex) => 
+          prevIndex < filteredCommands.length - 1 ? prevIndex + 1 : prevIndex
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedCommandIndex((prevIndex) => 
+          prevIndex > 0 ? prevIndex - 1 : prevIndex
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (filteredCommands.length > 0) {
+          handleCommandSelect(filteredCommands[selectedCommandIndex]);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setShowCommands(false);
+        break;
+      case 'Tab':
+        e.preventDefault();
+        if (filteredCommands.length > 0) {
+          handleCommandSelect(filteredCommands[selectedCommandIndex]);
+        }
+        break;
+      default:
+        break;
     }
   };
+
+  // Faire défiler la liste des commandes pour que l'élément sélectionné soit visible
+  useEffect(() => {
+    if (showCommands && commandsRef.current) {
+      const selectedElement = commandsRef.current.querySelector('.selected-command');
+      if (selectedElement) {
+        selectedElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+  }, [selectedCommandIndex, showCommands]);
 
   // Gestionnaire pour les clics en dehors de la popup
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (showCommands && !e.target.closest('.commands-popup')) {
+      if (showCommands && 
+          commandsRef.current && 
+          !commandsRef.current.contains(e.target) && 
+          e.target !== textareaRef.current) {
         setShowCommands(false);
       }
     };
@@ -148,19 +232,6 @@ const Page = ({ title, content, onTitleChange, onContentChange }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showCommands]);
-
-  // Ajouter des écouteurs pour suivre la position du curseur
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.addEventListener('mouseup', handleSelectionChange);
-      textarea.addEventListener('keyup', handleSelectionChange);
-      return () => {
-        textarea.removeEventListener('mouseup', handleSelectionChange);
-        textarea.removeEventListener('keyup', handleSelectionChange);
-      };
-    }
-  }, []);
 
   return (
     <div className="flex-1 flex flex-col bg-white m-4 rounded-lg shadow-sm overflow-hidden h-screen">
@@ -177,22 +248,13 @@ const Page = ({ title, content, onTitleChange, onContentChange }) => {
           ref={textareaRef}
           value={content}
           onChange={handleInput}
-          onKeyDown={(e) => {
-            // Naviguer dans la liste avec les flèches et sélectionner avec Entrée
-            if (showCommands && filteredCommands.length > 0) {
-              if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === 'Escape') {
-                e.preventDefault();
-                if (e.key === 'Escape') {
-                  setShowCommands(false);
-                }
-              }
-            }
-          }}
+          onKeyDown={handleKeyDown}
           placeholder='Commencez à taper ici ou entrez "/" pour afficher les commandes...'
           className="page-content flex-1 p-4 border-t border-gray-100 outline-none resize-none w-full h-full"
         />
-        {showCommands && (
+        {showCommands && filteredCommands.length > 0 && (
           <ul
+            ref={commandsRef}
             className="commands-popup absolute bg-white shadow-md rounded-md w-48 z-20"
             style={{ 
               top: `${commandsPosition.top}px`, 
@@ -201,19 +263,21 @@ const Page = ({ title, content, onTitleChange, onContentChange }) => {
               overflowY: 'auto'
             }}
           >
-            {filteredCommands.length > 0 ? (
-              filteredCommands.map((cmd) => (
-                <li
-                  key={cmd.type}
-                  className="p-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => handleCommandSelect(cmd)}
-                >
-                  {cmd.label}
-                </li>
-              ))
-            ) : (
-              <li className="p-2 text-gray-500">Aucune commande trouvée</li>
-            )}
+            {filteredCommands.map((cmd, index) => (
+              <li
+                key={cmd.type}
+                className={`p-2 cursor-pointer ${index === selectedCommandIndex ? 'bg-blue-100 selected-command' : 'hover:bg-gray-100'}`}
+                onClick={() => handleCommandSelect(cmd)}
+                onMouseEnter={() => setSelectedCommandIndex(index)}
+              >
+                <div className="flex items-center justify-between">
+                  <span>{cmd.label}</span>
+                  {index === selectedCommandIndex && (
+                    <span className="text-xs text-gray-500">⏎</span>
+                  )}
+                </div>
+              </li>
+            ))}
           </ul>
         )}
       </div>

@@ -48,10 +48,6 @@ const AppContent = () => {
   };
 
   const handleDeletePage = (id) => {
-    if (pages.length === 1) {
-      alert('Vous ne pouvez pas supprimer la dernière page !');
-      return;
-    }
     const updatedPages = pages.filter((page) => page.id !== id);
     setPages(updatedPages);
     
